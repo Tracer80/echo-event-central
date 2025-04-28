@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -11,14 +10,13 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 const Login = () => {
-  const [username, setUsername] = React.useState('');
+  const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { login, user } = useAuth();
   const navigate = useNavigate();
   
   React.useEffect(() => {
-    // Redirect if user is already logged in
     if (user) {
       navigate('/');
     }
@@ -29,18 +27,10 @@ const Login = () => {
     setIsSubmitting(true);
     
     try {
-      // Handle admin login with hardcoded credentials
-      if (username === 'admin' && password === 'admin123') {
-        // Mock admin login
-        localStorage.setItem('token', 'admin-mock-token');
-        window.location.href = '/admin'; // Force reload to update auth context
-        return;
-      }
-      
-      await login(username, password);
+      await login(email, password);
     } catch (error) {
       console.error('Login submission error:', error);
-      toast.error('Invalid username or password');
+      toast.error('Invalid email or password');
     } finally {
       setIsSubmitting(false);
     }
@@ -62,12 +52,12 @@ const Login = () => {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="username"
-                placeholder="Enter your username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>

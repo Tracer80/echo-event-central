@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -11,59 +10,48 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
-  const [username, setUsername] = React.useState('');
+  const [fullName, setFullName] = React.useState('');
+  const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
   const [role, setRole] = React.useState('student');
-  const [errors, setErrors] = React.useState<{[key: string]: string}>({});
+  const [errors, setErrors] = React.useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  
-  const { register, user } = useAuth();
+
+  const { register } = useAuth();
   const navigate = useNavigate();
-  
+
   React.useEffect(() => {
-    // Redirect if user is already logged in
-    if (user) {
+    if (localStorage.getItem('token')) {
       navigate('/');
     }
-  }, [user, navigate]);
+  }, [navigate]);
 
   const validateForm = () => {
-    const newErrors: {[key: string]: string} = {};
-    
-    if (!username) {
-      newErrors.username = 'Username is required';
-    } else if (username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
-    }
-    
-    if (!password) {
-      newErrors.password = 'Password is required';
-    } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-    
-    if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-    
+    const newErrors: { [key: string]: string } = {};
+
+    if (!fullName) newErrors.fullName = 'Full name is required';
+    if (!email) newErrors.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Invalid email address';
+    if (!password) newErrors.password = 'Password is required';
+    else if (password.length < 6) newErrors.password = 'Password must be at least 6 characters';
+    if (password !== confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-    
+    if (!validateForm()) return;
+
     setIsSubmitting(true);
-    
+
     try {
-      await register(username, password, role);
+      await register(fullName, email, password, role);
+      // No need for navigate('/login') here anymore because AuthContext handles it
     } catch (error) {
-      console.error('Registration submission error:', error);
+      console.error('Registration error:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -77,27 +65,39 @@ const Register = () => {
             <Calendar className="h-6 w-6 text-primary-foreground" />
           </div>
           <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
-          <CardDescription>
-            Enter your information to register
-          </CardDescription>
+          <CardDescription>Enter your information to register</CardDescription>
         </CardHeader>
-        
+
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            {/* Full Name */}
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="fullName">Full Name</Label>
               <Input
-                id="username"
-                placeholder="Enter your username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="fullName"
+                placeholder="Enter your full name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
                 required
               />
-              {errors.username && (
-                <p className="text-destructive text-sm">{errors.username}</p>
-              )}
+              {errors.fullName && <p className="text-destructive text-sm">{errors.fullName}</p>}
             </div>
-            
+
+            {/* Email */}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              {errors.email && <p className="text-destructive text-sm">{errors.email}</p>}
+            </div>
+
+            {/* Password */}
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -108,11 +108,10 @@ const Register = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              {errors.password && (
-                <p className="text-destructive text-sm">{errors.password}</p>
-              )}
+              {errors.password && <p className="text-destructive text-sm">{errors.password}</p>}
             </div>
-            
+
+            {/* Confirm Password */}
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
               <Input
@@ -123,11 +122,10 @@ const Register = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
-              {errors.confirmPassword && (
-                <p className="text-destructive text-sm">{errors.confirmPassword}</p>
-              )}
+              {errors.confirmPassword && <p className="text-destructive text-sm">{errors.confirmPassword}</p>}
             </div>
-            
+
+            {/* Role */}
             <div className="space-y-2">
               <Label>Select your role</Label>
               <RadioGroup value={role} onValueChange={setRole} className="flex flex-col space-y-2 mt-2">
@@ -146,16 +144,12 @@ const Register = () => {
               </RadioGroup>
             </div>
           </CardContent>
-          
+
           <CardFooter className="flex flex-col">
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={isSubmitting}
-            >
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? 'Registering...' : 'Register'}
             </Button>
-            
+
             <p className="mt-4 text-center text-sm text-muted-foreground">
               Already have an account?{' '}
               <Link to="/login" className="text-primary hover:underline">

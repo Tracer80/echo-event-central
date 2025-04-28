@@ -1,8 +1,7 @@
-
 import axios from 'axios';
 
-// Base API URL - should be replaced with your actual API URL
-const API_URL = 'https://api.echoeventcentral.com/api';
+// Base API URL
+const API_URL = 'http://localhost:3000/api';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -26,11 +25,11 @@ api.interceptors.request.use(
 
 // Auth API
 export const authAPI = {
-  login: (username: string, password: string) => 
-    api.post('/auth/login', { username, password }),
+  login: (email: string, password: string) => 
+    api.post('/auth/login', { email, password }),
   
-  register: (username: string, password: string, role: string) => 
-    api.post('/users', { username, password, role }),
+  register: (full_name: string, email: string, password: string, role: string) =>
+    api.post('/users', { full_name, email, password, role }),
 };
 
 // Events API
